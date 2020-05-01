@@ -44,27 +44,6 @@ namespace MCUclient
         }
 
 
-        /*
-        void Log(params object []data)
-        {
-            try
-            {
-                Dispatcher.Invoke((Action)delegate ()
-                {
-                    tbLog.Text += "[" + DateTime.Now.ToString() + "] " + string.Concat(data) + Environment.NewLine;
-                    //if (!tbLog.IsMouseOver)
-                    tbLog.ScrollToLine(tbLog.LineCount - 2);
-                });
-            }
-
-            catch
-            {
-
-            }
-
-        }
-        */
-
         void Log(string str, params object[] args)
         {
             try
@@ -133,11 +112,8 @@ namespace MCUclient
 
             InitializeComponent();
             
-            
-
             webMotd.Loaded += (s, a) =>
             {
-                
                 try
                 {
                     //webMotd.Refresh(true);
@@ -159,7 +135,7 @@ namespace MCUclient
             
             this.Closed += (s, a) =>
               {
-                  if (t!=null && t.IsAlive) t.Abort();
+                  //if (t!=null && !t.IsCompleted) t.();
                   saveParams();
               };
 
@@ -360,6 +336,7 @@ namespace MCUclient
             NetworkClient nc = new NetworkClient();
             Dispatcher.Invoke(delegate () { pbLava.Value = 0; });
 
+            /*
             nc.RecivedDataCounterChange += (l) =>
             {
                 Dispatcher.Invoke((Action)delegate ()
@@ -369,7 +346,7 @@ namespace MCUclient
                 }
                     );
             };
-
+            */
 
             Dispatcher.Invoke(delegate () { tbStatistics.Text = "Получение списка файлов"; });
             Thread.Sleep(100);
@@ -502,13 +479,13 @@ namespace MCUclient
             }
 
             var query =
-                   from files in forDownload
+                   (from files in forDownload
                    select new
                    {
                        id = files.Field<Int32>("id"),
                        name = files.Field<string>("file"),
                        size = files.Field<Int64>("size"),
-                   };
+                   }).ToArray();
 
             totalRecivedSize = 0;
 
@@ -522,6 +499,7 @@ namespace MCUclient
 
             Dispatcher.Invoke(delegate () { pbLava.Maximum = totalRecivedSize; });
             Log("Всего файлов {0} на {1} байт.", cnt, totalRecivedSize);
+            Mutex mutex = new Mutex();
 
             nc.tcpClient.Close();
             if (cnt != 0)
@@ -530,9 +508,22 @@ namespace MCUclient
                 long tr = 0;
                 Log("Получаю файлы..");
 
-                foreach (var row in query)
-                {
+                Dictionary<int, NetworkClient> networkDictionary = new Dictionary<int, NetworkClient>();
 
+                Parallel.ForEach( query, row => //{ }
+                //foreach (var row in query)
+                {
+                    NetworkClient nc1;
+                    int thr_id = Thread.CurrentThread.GetHashCode();
+                    if (networkDictionary.ContainsKey(thr_id))
+                    {
+                        nc1 = networkDictionary[thr_id];
+                    }
+                    else
+                    {
+                        nc1 = new NetworkClient();
+                        networkDictionary[thr_id] = nc1;
+                    }
                     while (true)
                     {
                         string path = Params.dir + System.IO.Path.DirectorySeparatorChar + System.IO.Path.GetDirectoryName(row.name) + System.IO.Path.DirectorySeparatorChar;
@@ -546,7 +537,7 @@ namespace MCUclient
 
                         do
                         {
-                            if (!Connect(nc, Params.adress, Params.port, 10))
+                            if (!Connect(nc1, Params.adress, Params.port, 10))
                             {
                                 Log("Ошибка!!");
                                 Log("Не удалось подключится к серверу {0}:{1}", Params.adress, Params.port);
@@ -556,10 +547,10 @@ namespace MCUclient
                             }
                             try
                             {
-                                nc.WriteInt32((int)NetworkCommands.GetFile2);
-                                nc.WriteInt32(row.id);
-                                nc.WriteInt64(recived);
-                                recived += nc.ReadToStream(f_stm, true);
+                                nc1.WriteInt32((int)NetworkCommands.GetFile2);
+                                nc1.WriteInt32(row.id);
+                                nc1.WriteInt64(recived);
+                                recived += nc1.ReadToStream(f_stm, true);
                             }
                             catch (Exception ex)
                             {
@@ -569,9 +560,9 @@ namespace MCUclient
                                 Log(Environment.NewLine + ex.ToString());
                                 retry++;
                                 Log("Не удалось принять файл ", row.name);
-                                Log(Environment.NewLine + nc.lastExeption);
+                                Log(Environment.NewLine + nc1.lastExeption);
                                 Log("Повторное получение файла. Попытка {0}", retry);
-                                nc.tcpClient.Close();
+                                nc1.tcpClient.Close();
                                 Thread.Sleep(2000);
                                 continue;
 
@@ -580,7 +571,16 @@ namespace MCUclient
                         }
                         while (recived < row.size && retry <= 20);
                         f_stm.Close();
+
+                        mutex.WaitOne();
                         tr += recived;
+                        Dispatcher.Invoke((Action) delegate()
+                        {
+                            pbLava.Value = tr;
+                            tbStatistics.Text = "Загрузка" + Environment.NewLine + Convert.ToString(tr) + "/" +
+                                                Convert.ToString(totalRecivedSize);
+                        });
+                        mutex.ReleaseMutex();
 
                         if (retry == 20)
                         {
@@ -595,13 +595,20 @@ namespace MCUclient
 
 
                 }//end foreach
+                 );
  
                 Log("Принято {0} из {1} байт.", tr, totalRecivedSize);
                 Log("Завершаю прием файлов.");
                 nc.WriteInt32(-1);
                 Log("Отключение от сервера.");
                 nc.WriteInt32((int)NetworkCommands.Disconnect);
-                nc.tcpClient.Close();
+                foreach (var v in networkDictionary)
+                {
+                    v.Value.WriteInt32(-1);
+                    v.Value.WriteInt32((int)NetworkCommands.Disconnect);
+                    v.Value.tcpClient.Close();
+                }
+                //nc.tcpClient.Close();
             }
 
 
@@ -636,7 +643,7 @@ namespace MCUclient
         }
         
 
-        Thread t;
+        Task t;
         bool tabsExpanded = true;
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -648,7 +655,7 @@ namespace MCUclient
 
             spProgres.Visibility = Visibility.Visible;
 
-            t = new Thread(delegate ()
+            t = new Task(() =>
             {
 
                 try

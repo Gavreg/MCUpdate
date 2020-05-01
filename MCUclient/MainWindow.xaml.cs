@@ -510,10 +510,13 @@ namespace MCUclient
 
                 Dictionary<int, NetworkClient> networkDictionary = new Dictionary<int, NetworkClient>();
 
-                Parallel.ForEach( query, row => //{ }
+                ParallelOptions po = new ParallelOptions();
+                po.MaxDegreeOfParallelism = 16;
+                Parallel.ForEach( query, po,row => //{ }
                 //foreach (var row in query)
                 {
-                    NetworkClient nc1;
+                    NetworkClient nc1;//=new NetworkClient();
+                    
                     int thr_id = Thread.CurrentThread.GetHashCode();
                     if (networkDictionary.ContainsKey(thr_id))
                     {
@@ -527,16 +530,17 @@ namespace MCUclient
                     while (true)
                     {
                         string path = Params.dir + System.IO.Path.DirectorySeparatorChar + System.IO.Path.GetDirectoryName(row.name) + System.IO.Path.DirectorySeparatorChar;
-                        FileStream f_stm = null;
+                       
                         string output = "";
                         long recived = 0;
                         int retry = 0;
                         output = Params.dir + System.IO.Path.DirectorySeparatorChar + row.name;
                         Directory.CreateDirectory(path);
-                        f_stm = File.Create(output);
+                        FileStream f_stm = File.Create(output);
 
                         do
                         {
+                            
                             if (!Connect(nc1, Params.adress, Params.port, 10))
                             {
                                 Log("Ошибка!!");
@@ -589,6 +593,10 @@ namespace MCUclient
                             continue;
                         }
 
+                        nc1.WriteInt32(-1);
+                        nc1.WriteInt32((int)NetworkCommands.Disconnect);
+                        nc1.tcpClient.Close();
+
                         break;
 
                     } //end (while 1)
@@ -599,14 +607,18 @@ namespace MCUclient
  
                 Log("Принято {0} из {1} байт.", tr, totalRecivedSize);
                 Log("Завершаю прием файлов.");
-                nc.WriteInt32(-1);
-                Log("Отключение от сервера.");
-                nc.WriteInt32((int)NetworkCommands.Disconnect);
+                //nc.WriteInt32(-1);
+                //Log("Отключение от сервера.");
+                //nc.WriteInt32((int)NetworkCommands.Disconnect);
                 foreach (var v in networkDictionary)
                 {
-                    v.Value.WriteInt32(-1);
-                    v.Value.WriteInt32((int)NetworkCommands.Disconnect);
-                    v.Value.tcpClient.Close();
+                    if (v.Value.tcpClient.Connected)
+                    {
+                        v.Value.WriteInt32(-1);
+                        v.Value.WriteInt32((int)NetworkCommands.Disconnect);
+                        v.Value.tcpClient.Close();
+                    }
+
                 }
                 //nc.tcpClient.Close();
             }

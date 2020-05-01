@@ -32,7 +32,7 @@ namespace MCUServer
         public static void Log(string msg, params object[] args)
         {
             string log = string.Format("[" + DateTime.Now + "] " + msg, args);
-            Console.WriteLine( log);
+            //Console.WriteLine( log);
 
             Encoding uni = Encoding.UTF8;
             byte[] data = uni.GetBytes(log+Environment.NewLine);

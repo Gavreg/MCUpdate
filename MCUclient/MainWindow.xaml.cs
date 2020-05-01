@@ -756,7 +756,7 @@ namespace MCUclient
         public static int port;
         public static string[] exFiles;
 
-        static int version = 9; //версия дефолтных аругментов!
+        static int version = 10; //версия дефолтных аругментов!
 
         public static string[] exFilesOnly
         {
@@ -784,8 +784,8 @@ namespace MCUclient
         static void Default()
         {
                 dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + System.IO.Path.DirectorySeparatorChar +".minecraft";
-                adress = "95.165.143.251";  //95.165.143.251
-                port = 1214;
+                adress = "95.165.132.185";  //95.165.132.185
+            port = 1214;
                 exFiles = new string[] { "#Укажите тут файлы/папки,","#которые не будут затрагиватся при обновлении",
                                                             "#Строки, начинающиеся с # будут проигнорированы",
                                                             "#Пустые строки будут удалены",

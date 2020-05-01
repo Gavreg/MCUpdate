@@ -19,6 +19,7 @@ using System.Xml.Linq;
 using System.Net.Sockets;
 using System.IO;
 using System.Data;
+using System.Diagnostics;
 using System.Threading;
 using MCUlib;
 
@@ -100,7 +101,10 @@ namespace MCUclient
                 {
                     connected = nc.Connect(Adress, port);
                 }
-                catch { };
+                catch (Exception e)
+                {
+                    Log(e.Message);
+                };
                 
 
                 if (connected == false)
@@ -127,9 +131,24 @@ namespace MCUclient
         public MainWindow()
         {
 
-
             InitializeComponent();
-     
+            
+            
+
+            webMotd.Loaded += (s, a) =>
+            {
+                
+                try
+                {
+                    //webMotd.Refresh(true);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message);
+                }
+
+            };
+
             this.Width = 720;
             this.Height = 400;
 
@@ -713,6 +732,19 @@ namespace MCUclient
             Params.exFiles = ef.files;
 
         }
+
+        private void btnStart_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start($"{Params.dir}\\jre1.8.0_251\\bin\\javaw.exe", $"-jar \"{Params.dir}\\ML.jar\"");
+                System.Windows.Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка запуска! Вы сделали полное обновление?");
+            }
+        }
     }
 
 
@@ -724,7 +756,7 @@ namespace MCUclient
         public static int port;
         public static string[] exFiles;
 
-        static int version = 5; //версия дефолтных аругментов!
+        static int version = 9; //версия дефолтных аругментов!
 
         public static string[] exFilesOnly
         {
@@ -755,11 +787,12 @@ namespace MCUclient
                 adress = "95.165.143.251";  //95.165.143.251
                 port = 1214;
                 exFiles = new string[] { "#Укажите тут файлы/папки,","#которые не будут затрагиватся при обновлении",
-                                                             "# Строки, начинающиеся с # будут проигнорированы",
+                                                            "#Строки, начинающиеся с # будут проигнорированы",
                                                             "#Пустые строки будут удалены",
                                                             "#","# Пример коректного исключенного файла:","#mods\\mystcraft.jar",
                                                             "options.txt", "screenshots", "saves","blueprints","logs","magic","resourcepacks",
-                                                            "launcher_profiles.json","lastlogin","CustomDISkins","journeymap"
+                                                            "launcher_profiles.json","lastlogin","CustomDISkins","journeymap", "servers.dat",
+                                                            "optionsshaders.txt", "usernamecache.json"
                                                         };
         }
 

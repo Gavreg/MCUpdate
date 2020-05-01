@@ -457,7 +457,7 @@
                     </ImageBrush.RelativeTransform>
                 </ImageBrush>
             </TextBlock.Foreground>Minecraft Mods Updater</TextBlock>
-        <Button x:Name="btnUpdate" IsEnabled="True" Content="Обновить" Margin="241,286,0,0" Height="68" FontFamily="/MCUclient;component/#Gnomoria_rus" FontSize="26.667" HorizontalAlignment="Left"  Click="Button_Click_1" Width="261" VerticalAlignment="Top" Style="{DynamicResource ButtonStyle1}">
+        <Button x:Name="btnUpdate" IsEnabled="True" Content="Обновить" Margin="241,286,0,0" Height="68" FontFamily="/MCUclient;component/#Gnomoria_rus" FontSize="18" HorizontalAlignment="Left"  Click="Button_Click_1" Width="146" VerticalAlignment="Top" Style="{DynamicResource ButtonStyle1}">
 
         </Button>
 
@@ -473,12 +473,12 @@
             </CheckBox.Effect>
         </CheckBox>
 
-        <CheckBox x:Name="cbX64" IsEnabled="False" FontFamily="/MCUclient;component/#Gnomoria_rus" FontSize="17" Content="x64" HorizontalAlignment="Left" Margin="515,321,0,0" VerticalAlignment="Top" Style="{DynamicResource CheckBoxStyle1}" Background="#19170000" Foreground="#FF7C7C7C" BorderBrush="White" Height="33" Width="83">
+        <CheckBox x:Name="cbX64" IsEnabled="False" Visibility="Hidden" FontFamily="/MCUclient;component/#Gnomoria_rus" FontSize="17" Content="x64" HorizontalAlignment="Left" Margin="515,321,0,0" VerticalAlignment="Top" Style="{DynamicResource CheckBoxStyle1}" Background="#19170000" Foreground="#FF7C7C7C" BorderBrush="White" Height="33" Width="83">
             <CheckBox.Effect>
                 <DropShadowEffect BlurRadius="2" ShadowDepth="2"/>
             </CheckBox.Effect>
         </CheckBox>
-        <CheckBox x:Name="cbX86"  IsEnabled="False" FontFamily="/MCUclient;component/#Gnomoria_rus" FontSize="17" Content="x86" HorizontalAlignment="Left" Margin="515,288,0,0" VerticalAlignment="Top" Style="{DynamicResource CheckBoxStyle1}" Background="#19170000" Foreground="#FF7C7C7C" BorderBrush="White" Height="33" Width="83">
+        <CheckBox x:Name="cbX86" Visibility="Hidden"  IsEnabled="False" FontFamily="/MCUclient;component/#Gnomoria_rus" FontSize="17" Content="x86" HorizontalAlignment="Left" Margin="515,288,0,0" VerticalAlignment="Top" Style="{DynamicResource CheckBoxStyle1}" Background="#19170000" Foreground="#FF7C7C7C" BorderBrush="White" Height="33" Width="83">
             <CheckBox.Effect>
                 <DropShadowEffect BlurRadius="2" ShadowDepth="2"/>
             </CheckBox.Effect>
@@ -540,7 +540,7 @@
                 </TextBox.Effect>
             </TextBox>
             <Button x:Name="btnReconnect" Margin="514,0,146.292,119.75">
-                <Image x:Name="btnImage" Source="refresh.png" RenderTransformOrigin="0.5,0.5"/>                                
+                <Image x:Name="btnImage" Source="refresh.png" RenderTransformOrigin="0.5,0.5"/>
             </Button>
 
             <Button Margin="45,91,0,0" HorizontalAlignment="Left" Width="201" Height="30" VerticalAlignment="Top" FontFamily="/MCUclient;component/#Gnomoria_rus" FontSize="12" Click="Button_Click_2">Исключенные файлы</Button>
@@ -554,11 +554,9 @@
 
         <TabControl x:Name="tcInfo" Margin="10,79,10,0"  Background="#CC000000" Height="200" VerticalAlignment="Top">
             <TabItem  Header="MOTD"  Style="{DynamicResource TabItemStyle1}" >
-                <!--TextBox x:Name="tbMotd" TextWrapping="Wrap" BorderThickness="0" Margin="5,0,5,0" Background="{x:Null}" Foreground="White"  IsReadOnly="True">
-                </-->
-                <WebBrowser x:Name="webMotd" Source="http://95.165.143.251:1215/motd.htm">
-                    
-                </WebBrowser>
+                <!-- <TextBox x:Name="tbMotd" TextWrapping="Wrap" BorderThickness="0" Margin="5,0,5,0" Background="{x:Null}" Foreground="White"  IsReadOnly="True">
+                </TextBox> -->
+                <WebBrowser x:Name="webMotd" Source="http://gvr-ag.ru/motd.html"></WebBrowser>
             </TabItem>
             <!--
             <TabItem Header="История обновлений"  Style="{DynamicResource TabItemStyle1}">
@@ -590,6 +588,7 @@
                 </Grid>
             </Button.Content>
         </Button>
+        <Button x:Name="btnStart" IsEnabled="True" Content="Запустить" Margin="392,286,0,0" Height="68" FontFamily="/MCUclient;component/#Gnomoria_rus" FontSize="16" HorizontalAlignment="Left"   VerticalAlignment="Top" Style="{DynamicResource ButtonStyle1}" Click="btnStart_Click"/>
 
     </Grid>
 </Window>

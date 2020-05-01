@@ -58,7 +58,7 @@ namespace MCUlib
             _tcpClient.ReceiveTimeout = Constants.TimeOutClient;
             _tcpClient.SendTimeout = Constants.TimeOutClient;
 
-            IPAddress ipAddress = Dns.GetHostEntry(host).AddressList[0];
+            //IPAddress ipAddress = Dns.GetHostEntry(host).AddressList[0];
 
 
             _tcpClient.Connect(host, port);

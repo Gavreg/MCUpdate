@@ -8,6 +8,7 @@ using System.IO;
 using System.Data;
 
 using System.Security.Cryptography;
+using System.Threading;
 
 namespace MCUlib
 {
@@ -44,7 +45,7 @@ namespace MCUlib
 
         public string findById (int id)
         {
-            
+
             var query =
                 from files in ds.Tables[0].AsEnumerable()
                 where files.Field<int>("id") == id
@@ -88,11 +89,14 @@ namespace MCUlib
             if (files)
             {
                 String[] f = System.IO.Directory.GetFiles(startdir, "*", SearchOption.AllDirectories);
-                foreach (string s in f)
+                List<DataRow> tmp_table = new List<DataRow>();
+                Parallel.ForEach(f, (s) =>
+                    //foreach (string s in f)
                 {
 
                     DataRow row = ds.Tables[0].NewRow();
-                    row["id"] = fileID++;//  Convert.ToString( fileID++);
+                    int id = Interlocked.Increment(ref fileID);
+                    row["id"] = id; //  Convert.ToString( fileID++);
                     row["file"] = s.Remove(0, BaseDir.Length + 1);
                     System.IO.FileInfo _fi = new System.IO.FileInfo(s);
                     row["size"] = _fi.Length;
@@ -104,9 +108,11 @@ namespace MCUlib
                     }
 
                     row["md5"] = sBuilder.ToString();
-                    ds.Tables[0].Rows.Add(row);
+                    tmp_table.Add(row);
 
-                }
+                });
+                foreach (var r in tmp_table)
+                    ds.Tables[0].Rows.Add(r);
             }
 
             if (dirs)
